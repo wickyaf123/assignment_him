@@ -41,9 +41,11 @@ RETURN s.uid AS source_uid, 'Section' AS source_type,
        child.number AS target_number, child.text AS target_text
 LIMIT 200`
 
-const OVERVIEW_QUERY = `MATCH (a:Act)-[r1:HAS_CHAPTER]->(ch:Chapter)-[r2:HAS_SECTION]->(s:Section)
-WITH a, ch, s LIMIT 50
-OPTIONAL MATCH (s)-[r3:HAS_SUBSECTION]->(ss:SubSection)
+const OVERVIEW_QUERY = `
+// Act hierarchy: Act -> Chapter -> Section (+ a few SubSections)
+MATCH (a:Act)-[:HAS_CHAPTER]->(ch:Chapter)-[:HAS_SECTION]->(s:Section)
+WITH a, ch, s LIMIT 40
+OPTIONAL MATCH (s)-[:HAS_SUBSECTION]->(ss:SubSection)
 WITH a, ch, s, collect(ss)[0..2] AS subs
 UNWIND ([{
   source_uid: a.uid, source_type: 'Act',
@@ -63,6 +65,46 @@ UNWIND ([{
   rel_type: 'HAS_SUBSECTION',
   target_uid: x.uid, target_type: 'SubSection',
   target_label: coalesce(x.title, ''), target_number: x.number, target_text: x.text
+}]) AS row
+RETURN row.source_uid AS source_uid, row.source_type AS source_type,
+       row.source_label AS source_label, row.source_number AS source_number,
+       row.source_text AS source_text, row.rel_type AS rel_type,
+       row.target_uid AS target_uid, row.target_type AS target_type,
+       row.target_label AS target_label, row.target_number AS target_number,
+       row.target_text AS target_text
+
+UNION
+
+// Amendment Act -> Act link + amendment relationships to Sections
+MATCH (aa:AmendmentAct)-[r]->(target)
+WHERE type(r) IN ['AMENDED_BY', 'SUBSTITUTES', 'INSERTS', 'OMITS', 'DECRIMINALIZES']
+WITH aa, r, target LIMIT 20
+RETURN aa.uid AS source_uid, 'AmendmentAct' AS source_type,
+       coalesce(aa.title, '') AS source_label, null AS source_number, aa.text AS source_text,
+       type(r) AS rel_type,
+       target.uid AS target_uid, labels(target)[0] AS target_type,
+       coalesce(target.title, target.term, '') AS target_label,
+       target.number AS target_number, target.text AS target_text
+
+UNION
+
+// RuleSet -> Rules (+ a few Forms)
+MATCH (rs:RuleSet)-[:HAS_RULE]->(ru:Rule)
+WITH rs, ru LIMIT 15
+OPTIONAL MATCH (ru)-[:HAS_FORM]->(f:Form)
+WITH rs, ru, collect(f)[0..1] AS forms
+UNWIND ([{
+  source_uid: rs.uid, source_type: 'RuleSet',
+  source_label: coalesce(rs.title, ''), source_number: null, source_text: rs.text,
+  rel_type: 'HAS_RULE',
+  target_uid: ru.uid, target_type: 'Rule',
+  target_label: coalesce(ru.title, ''), target_number: ru.number, target_text: ru.text
+}] + [x IN forms | {
+  source_uid: ru.uid, source_type: 'Rule',
+  source_label: coalesce(ru.title, ''), source_number: ru.number, source_text: ru.text,
+  rel_type: 'HAS_FORM',
+  target_uid: x.uid, target_type: 'Form',
+  target_label: coalesce(x.title, ''), target_number: x.form_number, target_text: x.text
 }]) AS row
 RETURN row.source_uid AS source_uid, row.source_type AS source_type,
        row.source_label AS source_label, row.source_number AS source_number,
@@ -143,6 +185,7 @@ function makeDisplayLabel(type: string, label: string, number?: number | string,
   if (type === 'Section' && numStr) return `Section ${numStr}`
   if (type === 'SubSection' && numStr) return `Sub-section (${numStr})`
   if (type === 'Rule' && numStr) return `Rule ${numStr}`
+  if (type === 'Form' && numStr) return `Form ${numStr}`
   if (type === 'Chapter' && numStr && numStr !== 'UNKNOWN') return `Chapter ${numStr}`
 
   if (label && label.length < 100) return label

@@ -17,6 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { QueryResponse } from '@/types/api'
 import { CitationRenderer } from '@/components/citation-link'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 
 interface ResponseCardProps {
   data: QueryResponse
@@ -76,7 +77,7 @@ export function ResponseCard({ data }: ResponseCardProps) {
               onHoverCitation={setHighlightedCitation}
             />
           ) : (
-            <p>{data.answer}</p>
+            <MarkdownRenderer content={data.answer} />
           )}
         </div>
       </CardHeader>

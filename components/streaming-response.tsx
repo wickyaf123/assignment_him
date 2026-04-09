@@ -1,6 +1,7 @@
 'use client'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 import type { Source } from '@/types/api'
 
 // Step display names
@@ -89,7 +90,7 @@ export function StreamingResponse({ state }: StreamingResponseProps) {
             className="text-base leading-relaxed"
             style={{ color: '#0F172A', fontSize: '16px', lineHeight: '1.75' }}
           >
-            {state.tokens}
+            <MarkdownRenderer content={state.tokens} />
             {state.status === 'streaming' && (
               <span className="inline-block w-2 h-5 ml-1 animate-pulse rounded-sm" style={{ backgroundColor: '#4F46E5' }} />
             )}
