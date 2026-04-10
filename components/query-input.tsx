@@ -4,12 +4,18 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 const EXAMPLE_QUESTIONS = [
-  'What are the penalties under Section 135 for CSR non-compliance and director liability?',
-  'Compare the original Section 149 with changes made by the Amendment Act regarding independent directors',
-  'Which chapters of the Companies Act have no corresponding Rules?',
-  'What are the penalties for violating Section 185 and which Rules prescribe exceptions?',
-  'List sections that impose personal liability on directors',
+  'What are the penalties under Section 447 for fraud?',
+  'How was Section 135 amended by the Corporate Laws Amendment Act?',
   'Which sections were decriminalized by the Amendment Act?',
+  'What is the definition of "related party" under the Companies Act?',
+  'Which rules relate to Section 135 on CSR?',
+  'Explain Section 166 — duties of directors',
+  'What did the Corporate Laws Amendment Act 2026 change?',
+  'What are the cross-references in Section 135?',
+  'How many sections are in the Companies Act?',
+  'What are the penalties for violating Section 185?',
+  'What are all the definitions in the Companies Act?',
+  'What does Section 188 say about related party transactions?',
 ]
 
 interface QueryInputProps {
